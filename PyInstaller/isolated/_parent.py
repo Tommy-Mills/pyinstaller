@@ -316,9 +316,7 @@ class Python:
         # Read a single line of output back from the child. This contains if the function worked and either its return
         # value or a traceback. This will block indefinitely until it receives a '\n' byte.
         try:
-            line = b64decode(self._read_handle.readline())
-            logger.info(f"Child output: {line}")
-            ok, output = loads(line)
+            ok, output = loads(b64decode(self._read_handle.readline()))
         except (EOFError, BrokenPipeError):
             # Subprocess appears to have died in an unhandleable way (e.g. SIGSEV). Raise an error.
             raise SubprocessDiedError(
@@ -326,6 +324,7 @@ class Python:
                 f"kwargs={kwargs}. Its exit code was {self._child.wait()}."
             ) from None
 
+        logger.info(f"Child output: {output}")
         # If all went well, then ``output`` is the return value.
         if ok:
             return output
@@ -337,6 +336,7 @@ class Python:
 
     def _send(self, *objects):
         for object in objects:
+            logger.info(f"Writing Child object: {object}")
             self._write_handle.write(b64encode(dumps(object)))
             self._write_handle.write(b"\n")
         # Flushing is very important. Without it, the data is not sent but forever sits in a buffer so that the child is
