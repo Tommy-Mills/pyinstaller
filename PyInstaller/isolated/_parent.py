@@ -316,8 +316,9 @@ class Python:
         # Read a single line of output back from the child. This contains if the function worked and either its return
         # value or a traceback. This will block indefinitely until it receives a '\n' byte.
         try:
-            logger.info(f"Child output: {b64decode(self._read_handle.readline())}")
-            ok, output = loads(b64decode(self._read_handle.readline()))
+            line = b64decode(self._read_handle.readline())
+            logger.info(f"Child output: {line}")
+            ok, output = loads(line)
         except (EOFError, BrokenPipeError):
             # Subprocess appears to have died in an unhandleable way (e.g. SIGSEV). Raise an error.
             raise SubprocessDiedError(
